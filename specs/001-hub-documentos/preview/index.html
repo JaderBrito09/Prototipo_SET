@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SET - Hub Unificado (PrimeReact v10)</title>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- React Transition Group (Peer Dependency) -->
+    <script src="https://unpkg.com/react-transition-group@4.4.5/dist/react-transition-group.min.js"></script>
+
+    <!-- PrimeReact v10 All-in-One Bundle (Stable for CDN) -->
+    <link rel="stylesheet" href="https://unpkg.com/primereact@10.6.3/resources/themes/lara-light-blue/theme.css">
+    <link rel="stylesheet" href="https://unpkg.com/primereact@10.6.3/resources/primereact.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css">
+    <script src="https://unpkg.com/primereact@10.6.3/primereact.all.min.js"></script>
+
+    <style>
+        :root {
+            --primary-blue-dark: #0a2566;
+            --primary-blue-medium: #113480;
+            --background-light: #f6f8fb;
+            --text-dark: #1f2937;
+            --success-green: #0e9f6e;
+            --danger-red: #f05252;
+            --border-color: #d1d5db;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background-color: #ffffff;
+            color: var(--text-dark);
+        }
+
+        .layout-header {
+            background-color: white; padding: 1rem 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #e5e7eb;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .logo { font-weight: 900; font-size: 1.5rem; color: var(--primary-blue-dark); margin-left: 1rem; }
+        
+        .header-left { display: flex; align-items: center; }
+
+        .filter-card {
+            background: white; padding: 1.5rem; border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .field-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .field-group label { font-weight: bold; color: var(--primary-blue-dark); font-size: 0.875rem; }
+
+        .badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.75rem; }
+        .badge-set { background: #e0e7ff; color: #1e40af; }
+        .badge-sifi { background: #fef3c7; color: #92400e; }
+        
+        .status-circle {
+            width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+            color: white; font-size: 10px; font-weight: bold;
+        }
+        .status-active { background: #10b981; }
+        .status-inactive { background: #ef4444; }
+
+        /* Style Overrides for SET */
+        .p-button.p-button-primary { background-color: var(--primary-blue-dark); border-color: var(--primary-blue-dark); }
+        .p-button.p-button-secondary { background-color: var(--primary-blue-medium); border-color: var(--primary-blue-medium); }
+        
+        .p-datatable .p-datatable-thead > tr > th {
+            background-color: #ffffff !important;
+            color: var(--primary-blue-dark) !important;
+            font-weight: bold !important;
+            font-size: 0.85rem !important;
+            border-bottom: 2px solid #e2e8f0 !important;
+            padding: 1rem !important;
+        }
+        .p-datatable .p-datatable-tbody > tr > td {
+            padding: 1rem !important;
+            font-size: 0.85rem !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            color: var(--text-dark);
+        }
+        
+        .breadcrumb-back {
+            color: var(--primary-blue-medium); cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Sidebar custom styles */
+        .p-sidebar-header { border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem; }
+        .sidebar-menu-group { margin-top: 1.5rem; }
+        
+        .sidebar-menu-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem 1rem;
+            color: var(--text-dark); cursor: pointer; border-radius: 4px;
+            transition: background-color 0.2s; font-weight: 600; margin-bottom: 0.25rem; font-size: 0.9rem;
+        }
+        .sidebar-menu-item:hover { background-color: var(--background-light); }
+        .sidebar-menu-item.active { background-color: #e5edff; color: var(--primary-blue-dark); }
+        
+        .sidebar-sub-menu {
+            padding-left: 2rem; overflow: hidden; transition: max-height 0.3s ease-in-out;
+        }
+        .sidebar-sub-item {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem;
+            color: var(--text-muted); cursor: pointer; border-radius: 4px;
+            font-size: 0.85rem; transition: all 0.2s; margin-bottom: 0.15rem;
+        }
+        .sidebar-sub-item:hover { color: var(--primary-blue-dark); background-color: #f8fafc; }
+        .sidebar-sub-item.active { color: var(--primary-blue-dark); font-weight: bold; }
+
+        /* Consultar Instituicao Custom Styles */
+        .btn-hamburger-custom {
+            background-color: #ffffff;
+            color: var(--primary-blue-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 1.25rem;
+        }
+        .btn-hamburger-custom:hover { background-color: var(--background-light); }
+        .btn-sair-custom {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--primary-blue-dark);
+            color: #ffffff;
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-sair-custom:hover {
+            background-color: var(--primary-blue-medium);
+        }
+        .filter-card-wrapper {
+            position: relative;
+            margin: 1.5rem 0;
+        }
+        .filter-card-tab {
+            position: absolute;
+            top: -14px;
+            left: 0.5rem;
+            background-color: var(--primary-blue-dark);
+            color: white;
+            padding: 0.35rem 1.25rem;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            z-index: 10;
+        }
+        .filter-card-body {
+            background-color: #f6f8fb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 1.75rem 1.5rem 1.25rem 1.5rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn-action {
+            padding: 0.5rem 1.75rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-consultar-custom {
+            background-color: var(--primary-blue-medium);
+            color: white;
+            border: none;
+        }
+        .btn-consultar-custom:hover {
+            background-color: #0d2866;
+        }
+        .btn-limpar-custom {
+            background-color: transparent;
+            color: var(--primary-blue-medium);
+            border: 1px solid var(--primary-blue-medium);
+        }
+        .btn-limpar-custom:hover {
+            background-color: #e5edff;
+        }
+        .btn-cadastrar-custom {
+            background-color: var(--primary-blue-dark);
+            color: white;
+            border: none;
+        }
+        .btn-cadastrar-custom:hover {
+            background-color: #071a48;
+        }
+        .status-circle-custom {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .status-circle-custom.active {
+            background-color: var(--success-green);
+        }
+        .status-circle-custom.inactive {
+            background-color: var(--danger-red);
+        }
+        .btn-action-view-custom {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--success-green);
+            color: white;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-action-view-custom:hover {
+            background-color: #0b8058;
+        }
+        .btn-action-edit-custom {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--primary-blue-medium);
+            color: white;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-action-edit-custom:hover {
+            background-color: #0d2866;
+        }
+        .btn-action-config-custom {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #64748b;
+            color: white;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-action-config-custom:hover {
+            background-color: #475569;
+        }
+        .export-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s ease;
+        }
+        .export-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* PrimeReact overrides for placeholders */
+        .p-inputtext, .p-dropdown {
+            width: 100%;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 4px !important;
+            font-size: 0.875rem !important;
+            padding: 0.5rem 0.75rem !important;
+        }
+        .p-dropdown .p-dropdown-label.p-placeholder {
+            color: #94a3b8 !important;
+            font-style: italic !important;
+        }
+        .p-inputtext::placeholder {
+            color: #94a3b8 !important;
+            font-style: italic !important;
+        }
+
+        /* Compact SelectButton for the Grid */
+        .compact-selectbutton .p-button {
+            padding: 0.25rem 0.75rem !important;
+            font-size: 0.75rem !important;
+            height: 28px !important;
+        }
+        .compact-selectbutton .p-button.p-highlight {
+            background-color: var(--primary-blue-dark) !important;
+            border-color: var(--primary-blue-dark) !important;
+        }
+
+        /* InputSwitch Active Color Override */
+        .p-inputswitch.p-inputswitch-checked .p-inputswitch-slider {
+            background-color: var(--primary-blue-dark) !important;
+        }
+        .p-inputswitch.p-focus .p-inputswitch-slider {
+            box-shadow: 0 0 0 0.2rem #e5edff !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef } = React;
+        
+        // --- Accessing components from the All-in-One Global Object ---
+        const { 
+            InputText, Dropdown, Button, DataTable, Column, 
+            Dialog, InputSwitch, Checkbox, AutoComplete, 
+            Toast, Sidebar, PrimeReactProvider, SelectButton
+        } = primereact;
+
+        // --- Mock Data ---
+        const mockDocumentosMestre = [
+            { id: 1, cod: "SET0001", nome: "Ata de Posse da Diretoria", descricao: "Documento que comprova a posse da diretoria eleita.", origem: "SET", situacao: true, dataCadastro: "26/05/2026", usuarioCadastrante: "JADER BRITO" },
+            { id: 2, cod: "SFI-991", nome: "Certidão Negativa Estadual", descricao: "Certidão emitida pela SEFAZ.", origem: "SIFI", situacao: true, dataCadastro: "26/05/2026", usuarioCadastrante: "SISTEMA SIFI" },
+            { id: 3, cod: "SET0002", nome: "Estatuto Social", descricao: "Estatuto social da entidade devidamente registrado.", origem: "SET", situacao: true, dataCadastro: "26/05/2026", usuarioCadastrante: "JADER BRITO" },
+            { id: 4, cod: "RFB-001", nome: "Comprovante de Inscrição CNPJ", descricao: "Cartão do CNPJ atualizado.", origem: "SIFI", situacao: false, dataCadastro: "26/05/2026", usuarioCadastrante: "SISTEMA SIFI" },
+        ];
+
+        const mockLocaisAnexo = [
+            { id: 10, pagina: "Cadastramento - Administracao Publica", local: "Documento dos Diretores", qtd: 4 },
+            { id: 11, pagina: "Proposta", local: "Dados gerais", qtd: 2 },
+            { id: 12, pagina: "Parecer", local: "Parecer Juridico", qtd: 0 },
+        ];
+
+        const mockParametrizacoes = [
+            { id: 100, docId: 1, nome: "Ata de Posse da Diretoria", ativo: true, obrigatorio: true, pessoa: "J", grupo: "INST" },
+            { id: 101, docId: 3, nome: "Estatuto Social", ativo: true, obrigatorio: false, pessoa: "A", grupo: "INST" }
+        ];
+
+        const mockInstituicoes = [
+            { id: 1, cnpj: "**.822.778/0001-**", nome: "ABAC - ASSOCIACAO BENEFICENTE DE AJUDA AO CIDADAO", tipo: "Entidade Sem Fins Lucrativos", status: "Ativo", situacao: true },
+            { id: 2, cnpj: "**.372.911/0001-**", nome: "ACADEMIA DE LETRAS CULTURA E ARTES DO CENTRO-OESTE", tipo: "Entidade Sem Fins Lucrativos", status: "Ativo", situacao: false },
+            { id: 3, cnpj: "**.484.565/0001-**", nome: "ASILO SANTA RITA", tipo: "Entidade Sem Fins Lucrativos", status: "Ativo", situacao: false },
+            { id: 4, cnpj: "**.504.734/0001-**", nome: "ASSOCIACAO AQUI E MATO", tipo: "Entidade Sem Fins Lucrativos", status: "Ativo", situacao: false },
+            { id: 5, cnpj: "**.372.428/0001-**", nome: "ASSOCIACAO ESPORTIVA CULTURAL E SOCIAL VALE DO ARAGUAIA", tipo: "Entidade Sem Fins Lucrativos", status: "Ativo", situacao: false }
+        ];
+
+        const App = () => {
+            const toast = useRef(null);
+            
+            // App State
+            const [sidebarVisible, setSidebarVisible] = useState(false);
+            const [activeMenu, setActiveMenu] = useState('instituicoes'); // Default to 'instituicoes' to match the screenshot
+            const [configMenuOpen, setConfigMenuOpen] = useState(true); // Control accordion
+            const [selectedGrid, setSelectedGrid] = useState(null);
+            
+            // Data State
+            const [docsMestre, setDocsMestre] = useState(mockDocumentosMestre);
+            const [parametrizacoes, setParametrizacoes] = useState(mockParametrizacoes);
+            const [filteredDocs, setFilteredDocs] = useState([]);
+            const [selectedAutoDoc, setSelectedAutoDoc] = useState(null);
+
+            // Instituicoes State
+            const [filtroCpfCnpj, setFiltroCpfCnpj] = useState('');
+            const [filtroNome, setFiltroNome] = useState('');
+            const [filtroTipo, setFiltroTipo] = useState(null);
+            const [filtroStatus, setFiltroStatus] = useState(null);
+            const [instituicoes, setInstituicoes] = useState(mockInstituicoes);
+            const [dialogVisible, setDialogVisible] = useState(false);
+            const [selectedInst, setSelectedInst] = useState(null);
+
+            // Documentos Modal State
+            const [docDialogVisible, setDocDialogVisible] = useState(false);
+            const [selectedDoc, setSelectedDoc] = useState(null);
+            const [isViewMode, setIsViewMode] = useState(false);
+
+            // Anexos Parametrization State
+            const [isAnexoViewMode, setIsAnexoViewMode] = useState(false);
+
+            const tiposInstituicao = [
+                { label: 'Entidade Sem Fins Lucrativos', value: 'Entidade Sem Fins Lucrativos' },
+                { label: 'Órgão Público', value: 'Órgão Público' },
+                { label: 'Empresa Privada', value: 'Empresa Privada' }
+            ];
+
+            const statusCadastro = [
+                { label: 'Ativo', value: 'Ativo' },
+                { label: 'Pendente', value: 'Pendente' },
+                { label: 'Suspenso', value: 'Suspenso' }
+            ];
+
+            const triggerAutoSave = () => {
+                toast.current.show({ severity: 'success', summary: 'Sucesso', detail: 'Alteração salva automaticamente', life: 2000 });
+            };
+
+            const navigateTo = (menu) => {
+                setActiveMenu(menu);
+                setSelectedGrid(null); // Reset drilldown when switching menus
+                setSidebarVisible(false); // Close sidebar on mobile/selection
+            };
+
+            const origemBodyTemplate = (rowData) => (
+                <span className={`badge ${rowData.origem === 'SET' ? 'badge-set' : 'badge-sifi'}`}>{rowData.origem}</span>
+            );
+
+            const situacaoBodyTemplate = (rowData) => (
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <div className={`status-circle-custom ${rowData.situacao ? 'active' : 'inactive'}`}>
+                        <i className={`pi ${rowData.situacao ? 'pi-check' : 'pi-times'}`} style={{ fontSize: '0.65rem' }}></i>
+                    </div>
+                </div>
+            );
+
+            const generateNextSetCode = () => {
+                const setDocs = docsMestre.filter(d => d.cod && d.cod.startsWith('SET'));
+                if (setDocs.length === 0) return 'SET0001';
+                
+                const numbers = setDocs.map(d => parseInt(d.cod.replace('SET', '')));
+                const nextNum = Math.max(...numbers) + 1;
+                return `SET${nextNum.toString().padStart(4, '0')}`;
+            };
+
+            const handleOpenCadastrarDoc = () => {
+                setSelectedDoc({
+                    cod: generateNextSetCode(),
+                    nome: '',
+                    descricao: '',
+                    situacao: true,
+                    origem: 'SET'
+                });
+                setIsViewMode(false);
+                setDocDialogVisible(true);
+            };
+
+            const handleVisualizarDoc = (doc) => {
+                setSelectedDoc(doc);
+                setIsViewMode(true);
+                setDocDialogVisible(true);
+            };
+
+            const actionDocTemplate = (rowData) => (
+                <div style={{display: 'flex', gap: '0.5rem', justifyContent: 'center'}}>
+                    <button className="btn-action-view-custom" onClick={() => handleVisualizarDoc(rowData)} title="Visualizar">
+                        <i className="pi pi-eye" style={{fontSize: '0.8rem'}}></i>
+                    </button>
+                    <button className="btn-action-edit-custom" onClick={() => { setSelectedDoc(rowData); setIsViewMode(false); setDocDialogVisible(true); }} title="Editar">
+                        <i className="pi pi-pencil" style={{fontSize: '0.8rem'}}></i>
+                    </button>
+                </div>
+            );
+
+            const actionLocalTemplate = (rowData) => (
+                <div style={{display: 'flex', justifyContent: 'center', gap: '0.5rem'}}>
+                    <button className="btn-action-view-custom" onClick={() => { setSelectedGrid(rowData); setIsAnexoViewMode(true); }} title="Visualizar Parametrização">
+                        <i className="pi pi-eye" style={{fontSize: '0.8rem'}}></i>
+                    </button>
+                    <button className="btn-action-config-custom" onClick={() => { setSelectedGrid(rowData); setIsAnexoViewMode(false); }} title="Configurar Parametrização">
+                        <i className="pi pi-cog" style={{fontSize: '0.8rem'}}></i>
+                    </button>
+                </div>
+            );
+
+            const searchDocument = (event) => {
+                setTimeout(() => {
+                    let _filteredDocs = event.query.trim().length === 0 ? [...docsMestre] : docsMestre.filter(d => d.nome.toLowerCase().includes(event.query.toLowerCase()));
+                    setFilteredDocs(_filteredDocs);
+                }, 250);
+            };
+
+            const addParametrizacao = () => {
+                if(!selectedAutoDoc) return;
+                if(parametrizacoes.find(p => p.docId === selectedAutoDoc.id)) {
+                    toast.current.show({ severity: 'warn', summary: 'Aviso', detail: 'Documento já vinculado.', life: 2000 });
+                    return;
+                }
+                const newParam = { id: Date.now(), docId: selectedAutoDoc.id, nome: selectedAutoDoc.nome, ativo: true, obrigatorio: true, pessoa: "A", grupo: "INST" };
+                setParametrizacoes([newParam, ...parametrizacoes]);
+                setSelectedAutoDoc(null);
+                toast.current.show({ severity: 'success', summary: 'Vinculado', detail: 'Regra adicionada.', life: 2000 });
+            };
+
+            // Templates for Instituicoes DataTable
+            const situacaoInstituicaoTemplate = (rowData) => situacaoBodyTemplate(rowData);
+
+            const acoesInstituicaoTemplate = (rowData) => (
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <button className="btn-action-view-custom" onClick={() => handleVisualizar(rowData)}>
+                        <i className="pi pi-eye" style={{fontSize: '0.8rem'}}></i>
+                    </button>
+                </div>
+            );
+
+            const handleConsultar = () => {
+                let filtered = mockInstituicoes;
+                if (filtroCpfCnpj.trim()) {
+                    filtered = filtered.filter(item => item.cnpj.includes(filtroCpfCnpj.trim()));
+                }
+                if (filtroNome.trim()) {
+                    filtered = filtered.filter(item => item.nome.toLowerCase().includes(filtroNome.toLowerCase().trim()));
+                }
+                if (filtroTipo) {
+                    filtered = filtered.filter(item => item.tipo === filtroTipo);
+                }
+                if (filtroStatus) {
+                    filtered = filtered.filter(item => item.status === filtroStatus);
+                }
+                setInstituicoes(filtered);
+                toast.current.show({ severity: 'info', summary: 'Filtro Aplicado', detail: `Encontradas ${filtered.length} instituições.`, life: 2000 });
+            };
+
+            const handleLimpar = () => {
+                setFiltroCpfCnpj('');
+                setFiltroNome('');
+                setFiltroTipo(null);
+                setFiltroStatus(null);
+                setInstituicoes(mockInstituicoes);
+                toast.current.show({ severity: 'info', summary: 'Filtro Limpo', detail: 'Filtros redefinidos.', life: 2000 });
+            };
+
+            const handleCadastrar = () => {
+                setSelectedInst(null);
+                setDialogVisible(true);
+            };
+
+            const handleVisualizar = (inst) => {
+                setSelectedInst(inst);
+                setDialogVisible(true);
+            };
+
+            return (
+                <div style={{display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#ffffff'}}>
+                    <Toast ref={toast} />
+                    
+                    {/* Sidebar Component */}
+                    <Sidebar visible={sidebarVisible} onHide={() => setSidebarVisible(false)}>
+                        <div style={{display:'flex', alignItems:'center', marginBottom: '2rem'}}>
+                            <div className="logo" style={{marginLeft: 0}}>SET</div>
+                        </div>
+                        
+                        <div className="sidebar-menu-group">
+                            <div className={`sidebar-menu-item ${activeMenu === 'instituicoes' ? 'active' : ''}`} onClick={() => navigateTo('instituicoes')}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                                    <i className="pi pi-building"></i>
+                                    Cadastramento
+                                </div>
+                            </div>
+
+                            <div className="sidebar-menu-item" onClick={() => setConfigMenuOpen(!configMenuOpen)}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                                    <i className="pi pi-cog"></i>
+                                    Configurações
+                                </div>
+                                <i className={`pi ${configMenuOpen ? 'pi-chevron-down' : 'pi-chevron-right'}`} style={{fontSize: '0.75rem'}}></i>
+                            </div>
+                            
+                            <div className="sidebar-sub-menu" style={{ maxHeight: configMenuOpen ? '200px' : '0' }}>
+                                <div className={`sidebar-sub-item ${activeMenu === 'documentos' ? 'active' : ''}`} onClick={() => navigateTo('documentos')}>
+                                    <i className="pi pi-file" style={{fontSize: '0.85rem'}}></i>
+                                    Documentos (Catálogo)
+                                </div>
+                                
+                                <div className={`sidebar-sub-item ${activeMenu === 'anexos' ? 'active' : ''}`} onClick={() => navigateTo('anexos')}>
+                                    <i className="pi pi-paperclip" style={{fontSize: '0.85rem'}}></i>
+                                    Anexos (Parametrização)
+                                </div>
+                            </div>
+                        </div>
+                    </Sidebar>
+
+                    {/* Header matching exact layout of screenshot */}
+                    <div className="layout-header">
+                        <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <button className="btn-hamburger-custom" onClick={() => setSidebarVisible(true)}>
+                                <i className="pi pi-bars"></i>
+                            </button>
+                            <span style={{ fontWeight: '900', fontSize: '2rem', color: 'var(--primary-blue-dark)', fontFamily: 'sans-serif', letterSpacing: '-1px' }}>SET</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '1px solid #e2e8f0', paddingLeft: '0.75rem', lineHeight: '1.1' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--primary-blue-dark)', fontWeight: 'bold' }}>Sistema Estadual de Transferência</span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--primary-blue-dark)' }}>de Mato Grosso</span>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                            <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: 'var(--primary-blue-dark)' }}>JADER BRITO SOARES FERNANDES</span>
+                            <button className="btn-sair-custom" onClick={() => toast.current.show({ severity: 'info', summary: 'Logout', detail: 'Sessão encerrada.', life: 2000 })}>
+                                <i className="pi pi-sign-out" style={{ fontSize: '0.85rem' }}></i>
+                                <span>Sair</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Navigation/Breadcrumb Bar */}
+                    <div style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: '#ffffff', padding: '0.75rem 2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#6b7280' }}>
+                        <i className="pi pi-home" style={{ color: 'var(--primary-blue-dark)', cursor: 'pointer' }} onClick={() => navigateTo('instituicoes')}></i>
+                        <i className="pi pi-chevron-right" style={{ fontSize: '0.65rem' }}></i>
+                        <span>{activeMenu === 'instituicoes' ? 'Consultar Instituição' : activeMenu === 'documentos' ? 'Documentos (Catálogo)' : 'Configuração de Anexos por Local'}</span>
+                    </div>
+
+                    <div style={{flex: 1, padding: '1.5rem 2rem'}}>
+                        
+                        {/* =======================================================
+                            VIEW 0: INSTITUIÇÕES (Consulta)
+                            ======================================================= */}
+                        {activeMenu === 'instituicoes' && (
+                            <div className="view-section">
+                                <div className="filter-card-wrapper">
+                                    <div className="filter-card-tab">
+                                        Consultar Instituição
+                                    </div>
+                                    <div className="filter-card-body">
+                                        <div className="filter-grid" style={{ marginTop: '0.5rem' }}>
+                                            <div className="field-group">
+                                                <label>CPF/CNPJ</label>
+                                                <InputText 
+                                                    value={filtroCpfCnpj} 
+                                                    onChange={(e) => setFiltroCpfCnpj(e.target.value)} 
+                                                    placeholder="Informar CPF/CNPJ" 
+                                                />
+                                            </div>
+                                            <div className="field-group">
+                                                <label>Nome/Razão Social</label>
+                                                <InputText 
+                                                    value={filtroNome} 
+                                                    onChange={(e) => setFiltroNome(e.target.value)} 
+                                                    placeholder="Informar parte do Nome" 
+                                                />
+                                            </div>
+                                            <div className="field-group">
+                                                <label>Tipo de Instituição</label>
+                                                <Dropdown 
+                                                    value={filtroTipo} 
+                                                    options={tiposInstituicao} 
+                                                    onChange={(e) => setFiltroTipo(e.value)} 
+                                                    placeholder="Selecionar Tipo de Instituição" 
+                                                    showClear
+                                                />
+                                            </div>
+                                            <div className="field-group">
+                                                <label>Status do Cadastro</label>
+                                                <Dropdown 
+                                                    value={filtroStatus} 
+                                                    options={statusCadastro} 
+                                                    onChange={(e) => setFiltroStatus(e.value)} 
+                                                    placeholder="Selecionar Status do Cadastro" 
+                                                    showClear
+                                                />
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.25rem' }}>
+                                            <button className="btn-action btn-consultar-custom" onClick={handleConsultar}>Consultar</button>
+                                            <button className="btn-action btn-limpar-custom" onClick={handleLimpar}>Limpar</button>
+                                            <button className="btn-action btn-cadastrar-custom" onClick={handleCadastrar}>Cadastrar</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '0.75rem', marginTop: '2rem' }}>
+                                    <button className="export-btn" title="Exportar PDF" onClick={() => toast.current.show({ severity: 'info', summary: 'Exportar', detail: 'Exportando PDF...', life: 2000 })}>
+                                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M6 2C4.34 2 3 3.34 3 5V27C3 28.66 4.34 30 6 30H26C27.66 30 29 28.66 29 27V9L21 2H6Z" fill="#0c2356"/>
+                                            <path d="M21 2V9H29L21 2Z" fill="#1b3a7a"/>
+                                            <text x="7" y="24" fill="#ffffff" fontSize="8" fontWeight="bold" fontFamily="system-ui, sans-serif">PDF</text>
+                                        </svg>
+                                    </button>
+                                    <button className="export-btn" title="Exportar Excel" onClick={() => toast.current.show({ severity: 'info', summary: 'Exportar', detail: 'Exportando Excel...', life: 2000 })}>
+                                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M6 2C4.34 2 3 3.34 3 5V27C3 28.66 4.34 30 6 30H26C27.66 30 29 28.66 29 27V9L21 2H6Z" fill="#0c2356"/>
+                                            <path d="M21 2V9H29L21 2Z" fill="#1b3a7a"/>
+                                            <text x="12" y="24" fill="#ffffff" fontSize="9" fontWeight="bold" fontFamily="system-ui, sans-serif">X</text>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <DataTable value={instituicoes} responsiveLayout="scroll">
+                                    <Column field="cnpj" header="CPF/CNPJ" sortable style={{ width: '20%' }}></Column>
+                                    <Column field="nome" header="Nome/Razão Social" sortable style={{ width: '45%' }}></Column>
+                                    <Column field="tipo" header="Tipo Instituição" sortable style={{ width: '20%' }}></Column>
+                                    <Column field="status" header="Status do cadastro" sortable style={{ width: '10%' }}></Column>
+                                    <Column field="situacao" body={situacaoInstituicaoTemplate} header="Situação" sortable style={{ width: '5%', textAlign: 'center' }} headerStyle={{ textAlign: 'center' }}></Column>
+                                    <Column body={acoesInstituicaoTemplate} header="Ações" style={{ width: '5%', textAlign: 'center' }} headerStyle={{ textAlign: 'center' }}></Column>
+                                </DataTable>
+                            </div>
+                        )}
+
+                        {/* =======================================================
+                            VIEW 1: DOCUMENTOS (Catálogo Mestre)
+                            ======================================================= */}
+                        {activeMenu === 'documentos' && (
+                            <div className="view-section">
+                                <div className="filter-card-wrapper">
+                                    <div className="filter-card-tab">
+                                        Consultar Documentos
+                                    </div>
+                                    <div className="filter-card-body">
+                                        <div className="filter-grid" style={{ marginTop: '0.5rem' }}>
+                                            <div className="field-group"><label>Nome</label><InputText placeholder="Buscar..." /></div>
+                                            <div className="field-group"><label>Origem</label><Dropdown options={[{label:'SET', value:'SET'}, {label:'SIFI', value:'SIFI'}]} placeholder="Selecione..." showClear /></div>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.25rem' }}>
+                                            <button className="btn-action btn-consultar-custom">Consultar</button>
+                                            <button className="btn-action btn-cadastrar-custom" onClick={handleOpenCadastrarDoc}>Cadastrar</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '0.75rem', marginTop: '2rem' }}>
+                                    <button className="export-btn" title="Exportar PDF" onClick={() => toast.current.show({ severity: 'info', summary: 'Exportar', detail: 'Exportando PDF...', life: 2000 })}>
+                                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M6 2C4.34 2 3 3.34 3 5V27C3 28.66 4.34 30 6 30H26C27.66 30 29 28.66 29 27V9L21 2H6Z" fill="#0c2356"/>
+                                            <path d="M21 2V9H29L21 2Z" fill="#1b3a7a"/>
+                                            <text x="7" y="24" fill="#ffffff" fontSize="8" fontWeight="bold" fontFamily="system-ui, sans-serif">PDF</text>
+                                        </svg>
+                                    </button>
+                                    <button className="export-btn" title="Exportar Excel" onClick={() => toast.current.show({ severity: 'info', summary: 'Exportar', detail: 'Exportando Excel...', life: 2000 })}>
+                                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M6 2C4.34 2 3 3.34 3 5V27C3 28.66 4.34 30 6 30H26C27.66 30 29 28.66 29 27V9L21 2H6Z" fill="#0c2356"/>
+                                            <path d="M21 2V9H29L21 2Z" fill="#1b3a7a"/>
+                                            <text x="12" y="24" fill="#ffffff" fontSize="9" fontWeight="bold" fontFamily="system-ui, sans-serif">X</text>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div className="filter-card" style={{padding:0, overflow:'hidden', border: '1px solid #e5e7eb', borderRadius: '6px'}}>
+                                    <DataTable value={docsMestre} responsiveLayout="scroll">
+                                        <Column field="cod" header="Código" style={{width:'120px'}}></Column>
+                                        <Column field="nome" header="Documento" style={{fontWeight:'bold'}}></Column>
+                                        <Column body={origemBodyTemplate} header="Origem" style={{width:'100px'}}></Column>
+                                        <Column body={situacaoBodyTemplate} header="Situação" style={{width:'80px', textAlign:'center'}} headerStyle={{ textAlign: 'center' }}></Column>
+                                        <Column body={actionDocTemplate} header="Ações" style={{width:'120px', textAlign:'center'}} headerStyle={{ textAlign: 'center' }}></Column>
+                                    </DataTable>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* =======================================================
+                            VIEW 2: ANEXOS (Configuração)
+                            ======================================================= */}
+                        {activeMenu === 'anexos' && (
+                            <div className="view-section">
+                                {!selectedGrid ? (
+                                    <>
+                                        <div className="filter-card-wrapper">
+                                            <div className="filter-card-tab">
+                                                Configuração de Anexos por Local
+                                            </div>
+                                            <div className="filter-card-body">
+                                                <div className="filter-grid" style={{ marginTop: '0.5rem' }}>
+                                                    <div className="field-group"><label>Funcionalidade</label><InputText placeholder="Filtrar por funcionalidade..." /></div>
+                                                    <div className="field-group"><label>Local</label><InputText placeholder="Filtrar por local..." /></div>
+                                                    <div className="field-group"><label>Situação</label><Dropdown options={[{label:'Ativo', value:true}, {label:'Inativo', value:false}]} placeholder="Selecione..." showClear /></div>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.25rem' }}>
+                                                    <button className="btn-action btn-consultar-custom">Consultar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '0.75rem', marginTop: '2rem' }}>
+                                            <button className="export-btn" title="Exportar PDF" onClick={() => toast.current.show({ severity: 'info', summary: 'Exportar', detail: 'Exportando PDF...', life: 2000 })}>
+                                                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M6 2C4.34 2 3 3.34 3 5V27C3 28.66 4.34 30 6 30H26C27.66 30 29 28.66 29 27V9L21 2H6Z" fill="#0c2356"/>
+                                                    <path d="M21 2V9H29L21 2Z" fill="#1b3a7a"/>
+                                                    <text x="7" y="24" fill="#ffffff" fontSize="8" fontWeight="bold" fontFamily="system-ui, sans-serif">PDF</text>
+                                                </svg>
+                                            </button>
+                                            <button className="export-btn" title="Exportar Excel" onClick={() => toast.current.show({ severity: 'info', summary: 'Exportar', detail: 'Exportando Excel...', life: 2000 })}>
+                                                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M6 2C4.34 2 3 3.34 3 5V27C3 28.66 4.34 30 6 30H26C27.66 30 29 28.66 29 27V9L21 2H6Z" fill="#0c2356"/>
+                                                    <path d="M21 2V9H29L21 2Z" fill="#1b3a7a"/>
+                                                    <text x="12" y="24" fill="#ffffff" fontSize="9" fontWeight="bold" fontFamily="system-ui, sans-serif">X</text>
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <div className="filter-card" style={{padding:0, overflow:'hidden', border: '1px solid #e5e7eb', borderRadius: '6px'}}>
+                                            <DataTable value={mockLocaisAnexo} responsiveLayout="scroll">
+                                                <Column field="pagina" header="Funcionalidade" style={{textAlign:'left'}}></Column>
+                                                <Column field="local" header="Local" style={{fontWeight:'bold', textAlign:'left'}}></Column>
+                                                <Column field="qtd" header="N. Documentos" style={{textAlign:'center'}} headerStyle={{ textAlign: 'center' }}></Column>
+                                                <Column body={actionLocalTemplate} header="Ações" style={{textAlign:'center'}} headerStyle={{ textAlign: 'center' }}></Column>
+                                            </DataTable>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div>
+                                        <div className="breadcrumb-back" onClick={() => setSelectedGrid(null)}><i className="pi pi-arrow-left"></i> Voltar para Lista de Grids</div>
+                                        
+                                        <div className="filter-card-wrapper">
+                                            <div className="filter-card-tab">
+                                                {isAnexoViewMode ? 'Visualizar Parametrização' : 'Configurar Parametrização'}
+                                            </div>
+                                            <div className="filter-card-body">
+                                                <div style={{display:'flex', gap:'1rem', alignItems:'flex-end'}}>
+                                                    <div style={{flex:1}}>
+                                                        <h2 style={{margin:0, color:'var(--primary-blue-dark)', fontSize:'1.2rem'}}>
+                                                            {selectedGrid.local}
+                                                        </h2>
+                                                        <span style={{color:'gray', fontSize:'0.8rem'}}>{selectedGrid.pagina}</span>
+                                                    </div>
+                                                    {!isAnexoViewMode && (
+                                                        <div className="field-group" style={{flex: 2}}>
+                                                            <label>Documento:</label>
+                                                            <div style={{display:'flex', gap:'0.5rem'}}>
+                                                                <AutoComplete value={selectedAutoDoc} suggestions={filteredDocs} completeMethod={searchDocument} field="nome" placeholder="Busque no catálogo..." style={{width:'100%'}} onChange={(e) => setSelectedAutoDoc(e.value)} />
+                                                                <button className="btn-action btn-consultar-custom" onClick={addParametrizacao}>Consultar</button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '0.75rem', marginTop: '2rem' }}>
+                                            <button className="export-btn" title="Exportar PDF" onClick={() => toast.current.show({ severity: 'info', summary: 'Exportar', detail: 'Exportando PDF...', life: 2000 })}>
+                                                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M6 2C4.34 2 3 3.34 3 5V27C3 28.66 4.34 30 6 30H26C27.66 30 29 28.66 29 27V9L21 2H6Z" fill="#0c2356"/>
+                                                    <path d="M21 2V9H29L21 2Z" fill="#1b3a7a"/>
+                                                    <text x="7" y="24" fill="#ffffff" fontSize="8" fontWeight="bold" fontFamily="system-ui, sans-serif">PDF</text>
+                                                </svg>
+                                            </button>
+                                            <button className="export-btn" title="Exportar Excel" onClick={() => toast.current.show({ severity: 'info', summary: 'Exportar', detail: 'Exportando Excel...', life: 2000 })}>
+                                                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M6 2C4.34 2 3 3.34 3 5V27C3 28.66 4.34 30 6 30H26C27.66 30 29 28.66 29 27V9L21 2H6Z" fill="#0c2356"/>
+                                                    <path d="M21 2V9H29L21 2Z" fill="#1b3a7a"/>
+                                                    <text x="12" y="24" fill="#ffffff" fontSize="9" fontWeight="bold" fontFamily="system-ui, sans-serif">X</text>
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <div className="filter-card" style={{padding:0, overflow:'hidden', border: '1px solid #e5e7eb', borderRadius: '6px'}}>
+                                            <DataTable 
+                                                value={isAnexoViewMode 
+                                                    ? docsMestre.filter(doc => parametrizacoes.some(p => p.docId === doc.id && p.ativo))
+                                                    : docsMestre
+                                                } 
+                                                responsiveLayout="scroll"
+                                            >
+                                                <Column body={origemBodyTemplate} header="Origem" style={{width:'100px'}}></Column>
+                                                <Column field="nome" header="Documentos" style={{fontWeight:'bold'}}></Column>
+                                                <Column 
+                                                    header="Selecionar" 
+                                                    style={{width:'100px', textAlign:'center'}}
+                                                    headerStyle={{ textAlign: 'center' }}
+                                                    body={(doc) => {
+                                                        const param = parametrizacoes.find(p => p.docId === doc.id);
+                                                        const isSelected = param ? param.ativo : false;
+                                                        return (
+                                                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                                                                <InputSwitch 
+                                                                    checked={isSelected} 
+                                                                    onChange={(e) => {
+                                                                        if (isAnexoViewMode) return;
+                                                                        const existing = parametrizacoes.find(p => p.docId === doc.id);
+                                                                        if (existing) {
+                                                                            setParametrizacoes(parametrizacoes.map(p => p.docId === doc.id ? {...p, ativo: e.value} : p));
+                                                                        } else if (e.value === true) {
+                                                                            setParametrizacoes([...parametrizacoes, { id: Date.now(), docId: doc.id, nome: doc.nome, ativo: true, obrigatorio: false, pessoa: "A", grupo: "INST" }]);
+                                                                        }
+                                                                        triggerAutoSave();
+                                                                    }}
+                                                                    disabled={isAnexoViewMode}
+                                                                />
+                                                                <span style={{ fontSize: '0.7rem', fontWeight: 'bold', width: '25px', textAlign: 'left', color: isSelected ? 'var(--primary-blue-dark)' : '#94a3b8' }}>
+                                                                    {isSelected ? 'SIM' : 'NÃO'}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    }}
+                                                ></Column>
+                                                <Column 
+                                                    header="Obrigatório?" 
+                                                    style={{width:'120px', textAlign:'center'}}
+                                                    headerStyle={{ textAlign: 'center' }}
+                                                    body={(doc) => {
+                                                        const param = parametrizacoes.find(p => p.docId === doc.id);
+                                                        const isMandatory = param ? param.obrigatorio : false;
+                                                        const isSelected = param ? param.ativo : false;
+                                                        return (
+                                                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                                                                <InputSwitch 
+                                                                    checked={isMandatory} 
+                                                                    onChange={(e) => {
+                                                                        if (isAnexoViewMode) return;
+                                                                        const existing = parametrizacoes.find(p => p.docId === doc.id);
+                                                                        if (existing) {
+                                                                            setParametrizacoes(parametrizacoes.map(p => p.docId === doc.id ? {...p, obrigatorio: e.value} : p));
+                                                                        }
+                                                                        triggerAutoSave();
+                                                                    }}
+                                                                    disabled={isAnexoViewMode || !isSelected}
+                                                                />
+                                                                <span style={{ fontSize: '0.7rem', fontWeight: 'bold', width: '25px', textAlign: 'left', color: isMandatory ? 'var(--primary-blue-dark)' : '#94a3b8' }}>
+                                                                    {isMandatory ? 'SIM' : 'NÃO'}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    }}
+                                                ></Column>
+                                            </DataTable>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        
+                        <div style={{marginTop:'2rem', padding:'1rem', background:'#fff8f1', borderLeft:'4px solid var(--warning-yellow)', fontSize:'0.8rem'}}>
+                            <strong>Visual Prototype Update:</strong> O menu lateral permite alternar entre a nova funcionalidade de <strong>Consultar Instituição</strong>, o <strong>Catálogo de Documentos</strong> e a <strong>Parametrização de Anexos</strong>.
+                        </div>
+                    </div>
+
+                    {/* Dialog for Cadastrar/Visualizar Documento */}
+                    <Dialog 
+                        header={isViewMode ? "Visualizar Documento" : (selectedDoc?.id ? "Editar Documento" : "Cadastrar Documento")} 
+                        visible={docDialogVisible} 
+                        style={{ width: '500px' }} 
+                        modal 
+                        onHide={() => setDocDialogVisible(false)}
+                        footer={!isViewMode && (
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                <Button label="Cancelar" className="p-button-text p-button-secondary" onClick={() => setDocDialogVisible(false)} />
+                                <Button label="Salvar" className="p-button-primary" onClick={() => {
+                                    if (selectedDoc.id) {
+                                        setDocsMestre(docsMestre.map(d => d.id === selectedDoc.id ? selectedDoc : d));
+                                    } else {
+                                        const newDoc = {
+                                            ...selectedDoc,
+                                            id: Date.now(),
+                                            dataCadastro: new Date().toLocaleDateString('pt-BR'),
+                                            usuarioCadastrante: "JADER BRITO"
+                                        };
+                                        setDocsMestre([newDoc, ...docsMestre]);
+                                    }
+                                    setDocDialogVisible(false);
+                                    toast.current.show({ severity: 'success', summary: 'Sucesso', detail: 'Documento salvo no catálogo.', life: 2000 });
+                                }} />
+                            </div>
+                        )}
+                    >
+                        {selectedDoc && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '0.5rem' }}>
+                                <div className="field-group">
+                                    <label>Código</label>
+                                    <InputText value={selectedDoc.cod} disabled style={{ backgroundColor: '#f1f5f9' }} />
+                                </div>
+                                <div className="field-group">
+                                    <label>Documento</label>
+                                    <InputText 
+                                        value={selectedDoc.nome} 
+                                        onChange={(e) => setSelectedDoc({...selectedDoc, nome: e.target.value})} 
+                                        placeholder="Nome do documento"
+                                        disabled={isViewMode}
+                                    />
+                                </div>
+                                <div className="field-group">
+                                    <label>Descrição do Documento</label>
+                                    <InputText 
+                                        value={selectedDoc.descricao} 
+                                        onChange={(e) => setSelectedDoc({...selectedDoc, descricao: e.target.value})} 
+                                        placeholder="Breve descrição da finalidade"
+                                        disabled={isViewMode}
+                                    />
+                                </div>
+                                <div className="field-group">
+                                    <label>Situação</label>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <InputSwitch 
+                                            checked={selectedDoc.situacao} 
+                                            onChange={(e) => setSelectedDoc({...selectedDoc, situacao: e.value})}
+                                            disabled={isViewMode}
+                                        />
+                                        <span style={{ fontWeight: 'bold', color: selectedDoc.situacao ? 'var(--success-green)' : 'var(--danger-red)' }}>
+                                            {selectedDoc.situacao ? 'ATIVO' : 'INATIVO'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {isViewMode && (
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                        <div className="field-group">
+                                            <label style={{ fontSize: '0.7rem', color: '#64748b' }}>Data de Cadastro</label>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>{selectedDoc.dataCadastro || '-'}</span>
+                                        </div>
+                                        <div className="field-group">
+                                            <label style={{ fontSize: '0.7rem', color: '#64748b' }}>Usuário Cadastrante</label>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>{selectedDoc.usuarioCadastrante || '-'}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </Dialog>
+
+                    {/* Dialog for Cadastrar/Visualizar Instituição */}
+                    <Dialog header={selectedInst ? "Detalhes da Instituição" : "Cadastrar Instituição"} visible={dialogVisible} style={{ width: '450px' }} modal onHide={() => setDialogVisible(false)}>
+                        {selectedInst ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0.5rem 0' }}>
+                                <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', display: 'block' }}>CPF/CNPJ</span>
+                                    <strong style={{ color: 'var(--primary-blue-dark)' }}>{selectedInst.cnpj}</strong>
+                                </div>
+                                <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', display: 'block' }}>Nome/Razão Social</span>
+                                    <strong style={{ color: 'var(--primary-blue-dark)' }}>{selectedInst.nome}</strong>
+                                </div>
+                                <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', display: 'block' }}>Tipo de Instituição</span>
+                                    <strong style={{ color: 'var(--primary-blue-dark)' }}>{selectedInst.tipo}</strong>
+                                </div>
+                                <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', display: 'block' }}>Status do Cadastro</span>
+                                    <strong style={{ color: 'var(--primary-blue-dark)' }}>{selectedInst.status}</strong>
+                                </div>
+                                <div>
+                                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>Situação</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <span className={`status-circle-custom ${selectedInst.situacao ? 'active' : 'inactive'}`}>
+                                            <i className={`pi ${selectedInst.situacao ? 'pi-check' : 'pi-times'}`} style={{ fontSize: '0.65rem' }}></i>
+                                        </span>
+                                        <strong>{selectedInst.situacao ? 'Ativo' : 'Inativo'}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
+                                <div className="field-group">
+                                    <label>CPF/CNPJ</label>
+                                    <InputText id="newCpfCnpj" placeholder="Informar CPF/CNPJ" />
+                                </div>
+                                <div className="field-group">
+                                    <label>Nome/Razão Social</label>
+                                    <InputText id="newNome" placeholder="Informar parte do Nome" />
+                                </div>
+                                <div className="field-group">
+                                    <label>Tipo de Instituição</label>
+                                    <Dropdown id="newTipo" options={tiposInstituicao} placeholder="Selecionar Tipo de Instituição" />
+                                </div>
+                                <div className="field-group">
+                                    <label>Status do Cadastro</label>
+                                    <Dropdown id="newStatus" options={statusCadastro} placeholder="Selecionar Status do Cadastro" />
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1.5rem' }}>
+                                    <Button label="Cancelar" className="p-button-text p-button-secondary" onClick={() => setDialogVisible(false)} />
+                                    <button className="btn-action btn-consultar-custom" onClick={() => {
+                                        const cnpj = document.getElementById('newCpfCnpj').value || '**.000.000/0001-**';
+                                        const nome = document.getElementById('newNome').value || 'Nova Instituição';
+                                        const tipo = 'Entidade Sem Fins Lucrativos';
+                                        const status = 'Ativo';
+                                        const newInst = {
+                                            id: Date.now(),
+                                            cnpj,
+                                            nome,
+                                            tipo,
+                                            status,
+                                            situacao: true
+                                        };
+                                        mockInstituicoes.unshift(newInst);
+                                        setInstituicoes([...mockInstituicoes]);
+                                        setDialogVisible(false);
+                                        toast.current.show({ severity: 'success', summary: 'Sucesso', detail: 'Instituição cadastrada com sucesso!', life: 3000 });
+                                    }}>Salvar</button>
+                                </div>
+                            </div>
+                        )}
+                    </Dialog>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(<PrimeReactProvider><App /></PrimeReactProvider>);
+    </script>
+</body>
+</html>
